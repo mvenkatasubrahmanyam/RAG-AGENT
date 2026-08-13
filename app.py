@@ -1383,51 +1383,71 @@ def home():
 @app.route("/ask", methods=["POST"])
 def ask():
 
-    final_message = result["messages"][-1]
-answer = final_message.content
+    try:
+        data = request.get_json()
+        question = data.get("question", "").strip()
 
+        if not question:
+            return jsonify({
+                "answer": "Please enter a question."
+            })
 
-def extract_text(content):
+        # Run the RAG agent
+        result = agent.invoke({
+            "messages": [
+                {"role": "user", "content": question}
+            ]
+        })
 
-    if isinstance(content, str):
-        return content
+        final_message = result["messages"][-1]
+        answer = final_message.content
 
-    if isinstance(content, list):
-        parts = []
+        def extract_text(content):
 
-        for item in content:
+            if isinstance(content, str):
+                return content
 
-            if isinstance(item, str):
-                parts.append(item)
+            if isinstance(content, list):
+                parts = []
 
-            elif isinstance(item, dict):
+                for item in content:
 
-                if "text" in item:
-                    parts.append(extract_text(item["text"]))
+                    if isinstance(item, str):
+                        parts.append(item)
 
-                elif "content" in item:
-                    parts.append(extract_text(item["content"]))
+                    elif isinstance(item, dict):
 
-        return "\n".join(parts)
+                        if "text" in item:
+                            parts.append(extract_text(item["text"]))
 
-    if isinstance(content, dict):
+                        elif "content" in item:
+                            parts.append(extract_text(item["content"]))
 
-        if "text" in content:
-            return extract_text(content["text"])
+                return "\n".join(parts)
 
-        if "content" in content:
-            return extract_text(content["content"])
+            if isinstance(content, dict):
 
-        return ""
+                if "text" in content:
+                    return extract_text(content["text"])
 
-    return str(content)
+                if "content" in content:
+                    return extract_text(content["content"])
 
+                return ""
 
-final_answer = extract_text(answer)
+            return str(content)
 
-return jsonify({
-    "answer": final_answer
-})
+        final_answer = extract_text(answer)
+
+        return jsonify({
+            "answer": final_answer
+        })
+
+    except Exception as e:
+
+        return jsonify({
+            "answer": f"Error: {str(e)}"
+        }), 500
 
 
 # =========================
