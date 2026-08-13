@@ -195,63 +195,51 @@ def home():
 @app.route("/ask", methods=["POST"])
 def ask():
 
-    try:
-        data = request.get_json()
-        question = data.get("question", "").strip()
+    final_message = result["messages"][-1]
+answer = final_message.content
 
-        if not question:
-            return jsonify({
-                "answer": "Please enter a question."
-            })
 
-        result = agent.invoke({
-            "messages": [
-                {
-                    "role": "user",
-                    "content": question
-                }
-            ]
-        })
+def extract_text(content):
 
-        # Get final AI message
-        final_message = result["messages"][-1]
-        answer = final_message.content
+    if isinstance(content, str):
+        return content
 
-        # Convert structured Gemini/LangChain response to plain text
-        if isinstance(answer, str):
-            final_answer = answer
+    if isinstance(content, list):
+        parts = []
 
-        elif isinstance(answer, list):
-            text_parts = []
+        for item in content:
 
-            for item in answer:
-                if isinstance(item, dict):
+            if isinstance(item, str):
+                parts.append(item)
 
-                    if "text" in item:
-                        text_parts.append(str(item["text"]))
+            elif isinstance(item, dict):
 
-                    elif "content" in item:
-                        text_parts.append(str(item["content"]))
+                if "text" in item:
+                    parts.append(extract_text(item["text"]))
 
-                elif isinstance(item, str):
-                    text_parts.append(item)
+                elif "content" in item:
+                    parts.append(extract_text(item["content"]))
 
-            final_answer = "\n".join(text_parts)
+        return "\n".join(parts)
 
-        else:
-            final_answer = str(answer)
+    if isinstance(content, dict):
 
-        return jsonify({
-            "answer": final_answer
-        })
+        if "text" in content:
+            return extract_text(content["text"])
 
-    except Exception as e:
+        if "content" in content:
+            return extract_text(content["content"])
 
-        print("ERROR:", str(e))
+        return ""
 
-        return jsonify({
-            "answer": "Error: " + str(e)
-        }), 500
+    return str(content)
+
+
+final_answer = extract_text(answer)
+
+return jsonify({
+    "answer": final_answer
+})
 
 
 # =========================
