@@ -196,38 +196,61 @@ def home():
 def ask():
 
     try:
-
         data = request.get_json()
-
         question = data.get("question", "").strip()
 
         if not question:
-
             return jsonify({
-                "error": "Please enter a question."
+                "answer": "Please enter a question."
             })
 
         result = agent.invoke({
-
             "messages": [
                 {
                     "role": "user",
                     "content": question
                 }
             ]
-
         })
 
-        answer = result["messages"][-1].content
+        # Get final AI message
+        final_message = result["messages"][-1]
+        answer = final_message.content
+
+        # Convert structured Gemini/LangChain response to plain text
+        if isinstance(answer, str):
+            final_answer = answer
+
+        elif isinstance(answer, list):
+            text_parts = []
+
+            for item in answer:
+                if isinstance(item, dict):
+
+                    if "text" in item:
+                        text_parts.append(str(item["text"]))
+
+                    elif "content" in item:
+                        text_parts.append(str(item["content"]))
+
+                elif isinstance(item, str):
+                    text_parts.append(item)
+
+            final_answer = "\n".join(text_parts)
+
+        else:
+            final_answer = str(answer)
 
         return jsonify({
-            "answer": answer
+            "answer": final_answer
         })
 
     except Exception as e:
 
+        print("ERROR:", str(e))
+
         return jsonify({
-            "error": str(e)
+            "answer": "Error: " + str(e)
         }), 500
 
 
