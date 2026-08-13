@@ -1316,39 +1316,567 @@ agent = create_agent(
 @app.route("/")
 def home():
 
-    return """
-    <html>
-    <head>
-        <title>KT Agentic RAG</title>
-    </head>
+   return """
+<!DOCTYPE html>
+<html lang="en">
 
-    <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>KT Agentic RAG Assistant</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc, #e0e7ff);
+            color: #172033;
+        }
+
+        /* Main container */
+
+        .container {
+            width: 92%;
+            max-width: 1000px;
+            margin: 50px auto;
+        }
+
+        /* Header */
+
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .logo {
+            width: 70px;
+            height: 70px;
+            margin: auto;
+            border-radius: 20px;
+
+            background: linear-gradient(
+                135deg,
+                #6366f1,
+                #8b5cf6
+            );
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 34px;
+            color: white;
+
+            box-shadow:
+                0 15px 35px rgba(99, 102, 241, 0.3);
+        }
+
+        .header h1 {
+            margin-top: 18px;
+            font-size: 38px;
+            font-weight: 700;
+
+            background: linear-gradient(
+                90deg,
+                #4f46e5,
+                #7c3aed
+            );
+
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            margin-top: 10px;
+            color: #64748b;
+            font-size: 16px;
+        }
+
+        /* Main card */
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+
+            border-radius: 24px;
+
+            padding: 30px;
+
+            box-shadow:
+                0 20px 50px rgba(15, 23, 42, 0.10);
+
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        /* Question section */
+
+        .question-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #334155;
+        }
+
+        .input-area {
+            display: flex;
+            gap: 12px;
+        }
+
+        #question {
+            flex: 1;
+
+            padding: 17px 20px;
+
+            font-size: 16px;
+
+            border: 2px solid #e2e8f0;
+
+            border-radius: 14px;
+
+            outline: none;
+
+            transition: 0.3s;
+
+            background: #f8fafc;
+        }
+
+        #question:focus {
+            border-color: #6366f1;
+
+            background: white;
+
+            box-shadow:
+                0 0 0 4px rgba(99, 102, 241, 0.10);
+        }
+
+        #askBtn {
+            padding: 0 28px;
+
+            border: none;
+
+            border-radius: 14px;
+
+            background: linear-gradient(
+                135deg,
+                #6366f1,
+                #7c3aed
+            );
+
+            color: white;
+
+            font-size: 16px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+
+            transition: 0.25s;
+
+            box-shadow:
+                0 8px 20px rgba(99, 102, 241, 0.25);
+        }
+
+        #askBtn:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 12px 25px rgba(99, 102, 241, 0.35);
+        }
+
+        #askBtn:active {
+            transform: translateY(0);
+        }
+
+        /* Example questions */
+
+        .examples {
+            margin-top: 22px;
+        }
+
+        .examples-title {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .example-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .example {
+            padding: 9px 14px;
+
+            border-radius: 20px;
+
+            border: 1px solid #e2e8f0;
+
+            background: #f8fafc;
+
+            color: #475569;
+
+            cursor: pointer;
+
+            font-size: 13px;
+
+            transition: 0.2s;
+        }
+
+        .example:hover {
+            background: #eef2ff;
+            border-color: #a5b4fc;
+            color: #4f46e5;
+        }
+
+        /* Answer */
+
+        .answer-section {
+            margin-top: 30px;
+        }
+
+        .answer-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            margin-bottom: 12px;
+        }
+
+        .bot-icon {
+            width: 38px;
+            height: 38px;
+
+            border-radius: 12px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #eef2ff;
+
+            font-size: 20px;
+        }
+
+        .answer-header h2 {
+            font-size: 20px;
+            color: #1e293b;
+        }
+
+        #answer {
+            min-height: 120px;
+
+            padding: 22px;
+
+            border-radius: 16px;
+
+            background: #f8fafc;
+
+            border: 1px solid #e2e8f0;
+
+            color: #334155;
+
+            font-size: 16px;
+
+            line-height: 1.7;
+
+            white-space: pre-wrap;
+        }
+
+        /* Welcome message */
+
+        .welcome {
+            text-align: center;
+            color: #94a3b8;
+            padding: 25px;
+        }
+
+        /* Loading */
+
+        .loading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+
+            color: #6366f1;
+
+            font-weight: 500;
+        }
+
+        .dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dots span {
+            width: 7px;
+            height: 7px;
+
+            background: #6366f1;
+
+            border-radius: 50%;
+
+            animation: bounce 1.4s infinite ease-in-out;
+        }
+
+        .dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes bounce {
+
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Footer */
+
+        .footer {
+            text-align: center;
+
+            margin-top: 25px;
+
+            color: #94a3b8;
+
+            font-size: 13px;
+        }
+
+        /* Mobile */
+
+        @media (max-width: 650px) {
+
+            .container {
+                width: 94%;
+                margin: 25px auto;
+            }
+
+            .header h1 {
+                font-size: 29px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .input-area {
+                flex-direction: column;
+            }
+
+            #askBtn {
+                padding: 15px;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+
+    <div class="header">
+
+        <div class="logo">
+            🤖
+        </div>
 
         <h1>KT Agentic RAG Assistant</h1>
 
-        <input
-            id="question"
-            type="text"
-            placeholder="Ask a question"
-            style="width:400px;padding:10px;"
-        >
+        <p>
+            Ask questions about your Knowledge Transfer document
+        </p>
 
-        <button onclick="askQuestion()">
-            Ask
-        </button>
+    </div>
 
-        <h3>Answer:</h3>
 
-        <div id="answer"></div>
+    <!-- MAIN CARD -->
 
-        <script>
+    <div class="card">
 
-        async function askQuestion() {
+        <div class="question-title">
+            💬 Ask your question
+        </div>
 
-            let question =
-                document.getElementById("question").value;
 
-            let response = await fetch("/ask", {
+        <div class="input-area">
+
+            <input
+                type="text"
+                id="question"
+                placeholder="Ask something about the project..."
+            >
+
+            <button id="askBtn">
+                Ask →
+            </button>
+
+        </div>
+
+
+        <!-- EXAMPLES -->
+
+        <div class="examples">
+
+            <div class="examples-title">
+                Try asking:
+            </div>
+
+            <div class="example-buttons">
+
+                <button
+                    class="example"
+                    onclick="setQuestion('What is this project about?')">
+                    What is this project about?
+                </button>
+
+                <button
+                    class="example"
+                    onclick="setQuestion('What are the objectives of the project?')">
+                    Project objectives
+                </button>
+
+                <button
+                    class="example"
+                    onclick="setQuestion('What technologies are used?')">
+                    Technologies used
+                </button>
+
+                <button
+                    class="example"
+                    onclick="setQuestion('How does the RAG system work?')">
+                    How does RAG work?
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- ANSWER -->
+
+        <div class="answer-section">
+
+            <div class="answer-header">
+
+                <div class="bot-icon">
+                    🤖
+                </div>
+
+                <h2>AI Answer</h2>
+
+            </div>
+
+
+            <div id="answer">
+
+                <div class="welcome">
+
+                    👋 Ask a question to get started.
+
+                    <br>
+
+                    The AI will search the KT knowledge base
+                    and generate an answer.
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="footer">
+
+        Powered by Agentic AI • RAG • LangChain • Gemini
+
+    </div>
+
+</div>
+
+
+<script>
+
+    function setQuestion(question) {
+
+        document.getElementById("question").value = question;
+
+        document.getElementById("question").focus();
+
+    }
+
+
+    async function askQuestion() {
+
+        const question =
+            document.getElementById("question").value.trim();
+
+        const answer =
+            document.getElementById("answer");
+
+        const button =
+            document.getElementById("askBtn");
+
+
+        if (!question) {
+
+            answer.innerHTML =
+                "<div class='welcome'>Please enter a question.</div>";
+
+            return;
+
+        }
+
+
+        button.disabled = true;
+
+        button.innerHTML = "Thinking...";
+
+
+        answer.innerHTML = `
+
+            <div class="loading">
+
+                Searching knowledge base
+
+                <div class="dots">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        try {
+
+            const response = await fetch("/ask", {
 
                 method: "POST",
 
@@ -1362,18 +1890,55 @@ def home():
 
             });
 
-            let data = await response.json();
 
-            document.getElementById("answer").innerText =
-                data.answer || data.error;
+            const data = await response.json();
+
+
+            answer.innerText =
+                data.answer || "No answer received.";
+
 
         }
 
-        </script>
+        catch (error) {
 
-    </body>
-    </html>
-    """
+            answer.innerText =
+                "Something went wrong. Please try again.";
+
+        }
+
+
+        button.disabled = false;
+
+        button.innerHTML = "Ask →";
+
+    }
+
+
+    document
+        .getElementById("askBtn")
+        .addEventListener("click", askQuestion);
+
+
+    document
+        .getElementById("question")
+        .addEventListener("keydown", function(event) {
+
+            if (event.key === "Enter") {
+
+                askQuestion();
+
+            }
+
+        });
+
+</script>
+
+
+</body>
+
+</html>
+"""
 
 
 # =========================
